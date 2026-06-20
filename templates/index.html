@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Portal</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Glow Background Blobs -->
+    <div class="glow-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 6V12L16 14" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#06b6d4" />
+                                <stop offset="50%" stop-color="#6366f1" />
+                                <stop offset="100%" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>BQ Release Notes</h1>
+            </div>
+
+            <!-- Stats Summary Widget -->
+            <div class="stats-widget card">
+                <h3>Analytics Summary</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-val" id="stat-total">-</span>
+                        <span class="stat-lbl">Total Items</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val text-feature" id="stat-features">-</span>
+                        <span class="stat-lbl">Features</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val text-issue" id="stat-issues">-</span>
+                        <span class="stat-lbl">Issues</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val text-announce" id="stat-announcements">-</span>
+                        <span class="stat-lbl">Announcements</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="controls-panel card">
+                <h3>Search & Filtering</h3>
+                
+                <!-- Search bar -->
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Search releases..." autocomplete="off">
+                    <span class="search-shortcut">/</span>
+                </div>
+
+                <!-- Category Filters -->
+                <div class="filter-section">
+                    <label class="filter-label">Categories</label>
+                    <div class="category-filters">
+                        <button class="filter-btn active" data-category="All" id="filter-all">
+                            <span>All Releases</span>
+                            <span class="count-badge" id="count-all">0</span>
+                        </button>
+                        <button class="filter-btn" data-category="Feature">
+                            <span class="dot dot-feature"></span>
+                            <span>Features</span>
+                            <span class="count-badge badge-feature" id="count-features">0</span>
+                        </button>
+                        <button class="filter-btn" data-category="Announcement">
+                            <span class="dot dot-announce"></span>
+                            <span>Announcements</span>
+                            <span class="count-badge badge-announce" id="count-announcements">0</span>
+                        </button>
+                        <button class="filter-btn" data-category="Issue">
+                            <span class="dot dot-issue"></span>
+                            <span>Issues</span>
+                            <span class="count-badge badge-issue" id="count-issues">0</span>
+                        </button>
+                        <button class="filter-btn" data-category="Deprecation">
+                            <span class="dot dot-deprecate"></span>
+                            <span>Deprecations</span>
+                            <span class="count-badge badge-deprecate" id="count-deprecations">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Date Range Selection -->
+                <div class="filter-section">
+                    <label class="filter-label">Timeframe</label>
+                    <div class="time-presets">
+                        <button class="time-btn active" data-days="all">All Time</button>
+                        <button class="time-btn" data-days="30">Last 30 Days</button>
+                        <button class="time-btn" data-days="90">Last 90 Days</button>
+                    </div>
+                </div>
+
+                <!-- View Layout Switcher -->
+                <div class="filter-section">
+                    <label class="filter-label">Layout View</label>
+                    <div class="layout-toggle">
+                        <button class="layout-btn active" id="btn-timeline-view">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span>Timeline</span>
+                        </button>
+                        <button class="layout-btn" id="btn-card-view">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="9"></rect>
+                                <rect x="14" y="3" width="7" height="5"></rect>
+                                <rect x="14" y="12" width="7" height="9"></rect>
+                                <rect x="3" y="16" width="7" height="5"></rect>
+                            </svg>
+                            <span>Grid Cards</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Details -->
+            <div class="sidebar-footer">
+                <p>Data fetched from official BigQuery Release Notes RSS.</p>
+                <div class="footer-links">
+                    <a href="https://docs.cloud.google.com/feeds/bigquery-release-notes.xml" target="_blank" rel="noopener noreferrer">RSS Feed</a>
+                    <span>•</span>
+                    <a href="https://cloud.google.com/bigquery/docs/release-notes" target="_blank" rel="noopener noreferrer">Docs</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Display Area -->
+        <main class="main-content">
+            <!-- Top App Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <h2>Release Stream</h2>
+                    <span class="source-badge" id="source-badge">Connecting...</span>
+                </div>
+                <div class="top-bar-right">
+                    <span class="last-sync" id="sync-time">Checking for updates...</span>
+                    <button class="refresh-btn" id="refresh-btn" title="Force refresh release notes">
+                        <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Loading Skeleton -->
+            <div class="loading-state" id="loading-state">
+                <div class="skeleton-entry">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+                <div class="skeleton-entry">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state hidden" id="error-state">
+                <div class="error-card card">
+                    <div class="error-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <h3>Failed to Fetch Releases</h3>
+                    <p id="error-message">Unable to connect to the feed service. Please try again later.</p>
+                    <button class="retry-btn" id="retry-btn">Retry Connection</button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state hidden" id="empty-state">
+                <div class="empty-card card">
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <h3>No Releases Found</h3>
+                    <p>No release notes match your current search query or filter options. Try adjusting your parameters.</p>
+                    <button class="clear-filters-btn" id="clear-filters-btn">Clear All Filters</button>
+                </div>
+            </div>
+
+            <!-- Release Notes List Container -->
+            <div class="releases-wrapper timeline-layout" id="releases-container">
+                <!-- Javascript will inject entries here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Floating Action Button for Back to Top -->
+    <button class="back-to-top hidden" id="back-to-top" title="Scroll to top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+        </svg>
+    </button>
+
+    <!-- Custom Script -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
