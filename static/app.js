@@ -378,27 +378,32 @@ function renderReleases() {
     DOM.releasesContainer.innerHTML = state.filteredEntries.map((entry, index) => {
         // Fade in delay for micro-animation list entrance
         const delay = index * 0.05;
+        const search = state.filters.search;
         
         const itemsHtml = entry.items.map(item => {
             const badgeClass = getBadgeClass(item.type);
+            const highlightedHtml = search ? highlightSearchTerm(item.html, search) : item.html;
+            const highlightedType = search ? highlightSearchTerm(escapeHtml(item.type), search) : escapeHtml(item.type);
             return `
                 <div class="release-item">
                     <div class="release-item-header">
-                        <span class="badge ${badgeClass}">${escapeHtml(item.type)}</span>
+                        <span class="badge ${badgeClass}">${highlightedType}</span>
                     </div>
                     <div class="release-item-content">
-                        ${item.html}
+                        ${highlightedHtml}
                     </div>
                 </div>
             `;
         }).join('');
+
+        const highlightedDate = search ? highlightSearchTerm(escapeHtml(entry.date), search) : escapeHtml(entry.date);
 
         return `
             <article class="timeline-group card" style="animation-delay: ${delay}s">
                 <div class="timeline-dot"></div>
                 <div class="timeline-group-inner">
                     <header class="timeline-header">
-                        <h3 class="timeline-date">${escapeHtml(entry.date)}</h3>
+                        <h3 class="timeline-date">${highlightedDate}</h3>
                         <div class="timeline-actions">
                             <button class="copy-card-btn" data-index="${index}" title="Copy card to clipboard">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -565,4 +570,58 @@ function toggleTheme() {
         moonIcon.classList.add('hidden');
         localStorage.setItem('theme', 'dark');
     }
+}
+
+// Safely highlight occurrences of search term inside text nodes of an HTML block
+function highlightSearchTerm(htmlContent, searchTerm) {
+    if (!searchTerm) return htmlContent;
+    
+    // Create a temporary container
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Recursive helper to traverse and modify text nodes
+    function highlightNode(node) {
+        if (node.nodeType === 3) { // Text Node
+            const text = node.nodeValue;
+            const lowerText = text.toLowerCase();
+            const index = lowerText.indexOf(searchTerm);
+            
+            if (index !== -1) {
+                const parent = node.parentNode;
+                // Avoid modifying mark, script, style tags
+                if (parent && parent.tagName !== 'MARK' && parent.tagName !== 'SCRIPT' && parent.tagName !== 'STYLE') {
+                    const span = document.createElement('span');
+                    let remainingText = text;
+                    let matchIndex = remainingText.toLowerCase().indexOf(searchTerm);
+                    
+                    while (matchIndex !== -1) {
+                        // Text before match
+                        span.appendChild(document.createTextNode(remainingText.substring(0, matchIndex)));
+                        
+                        // Highlighting match wrapper
+                        const mark = document.createElement('mark');
+                        mark.className = 'search-highlight';
+                        mark.textContent = remainingText.substring(matchIndex, matchIndex + searchTerm.length);
+                        span.appendChild(mark);
+                        
+                        remainingText = remainingText.substring(matchIndex + searchTerm.length);
+                        matchIndex = remainingText.toLowerCase().indexOf(searchTerm);
+                    }
+                    
+                    span.appendChild(document.createTextNode(remainingText));
+                    parent.replaceChild(span, node);
+                }
+            }
+        } else if (node.nodeType === 1) { // Element Node
+            // Work with standard copy array to handle structural replacements safely
+            const childNodes = Array.from(node.childNodes);
+            for (let child of childNodes) {
+                highlightNode(child);
+            }
+        }
+    }
+    
+    highlightNode(tempDiv);
+    return tempDiv.innerHTML;
 }
