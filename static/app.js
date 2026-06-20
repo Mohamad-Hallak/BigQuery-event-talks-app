@@ -39,6 +39,7 @@ const DOM = {
     btnCardView: document.getElementById('btn-card-view'),
     refreshBtn: document.getElementById('refresh-btn'),
     exportBtn: document.getElementById('export-btn'),
+    themeToggleBtn: document.getElementById('theme-toggle-btn'),
     retryBtn: document.getElementById('retry-btn'),
     clearFiltersBtn: document.getElementById('clear-filters-btn'),
     
@@ -63,6 +64,7 @@ const DOM = {
 // INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+    initializeTheme();
     setupEventListeners();
     fetchReleases();
 });
@@ -122,6 +124,7 @@ function setupEventListeners() {
         fetchReleases(true);
     });
     DOM.exportBtn.addEventListener('click', exportToCSV);
+    DOM.themeToggleBtn.addEventListener('click', toggleTheme);
     DOM.retryBtn.addEventListener('click', () => {
         fetchReleases();
     });
@@ -526,4 +529,40 @@ function exportToCSV() {
     downloadLink.click();
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(url);
+}
+
+// Initialize theme on page load
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const sunIcon = DOM.themeToggleBtn.querySelector('.sun-icon');
+    const moonIcon = DOM.themeToggleBtn.querySelector('.moon-icon');
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+    } else {
+        document.body.classList.remove('light-theme');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+    }
+}
+
+// Toggle color theme between light and dark
+function toggleTheme() {
+    const body = document.body;
+    const sunIcon = DOM.themeToggleBtn.querySelector('.sun-icon');
+    const moonIcon = DOM.themeToggleBtn.querySelector('.moon-icon');
+    
+    body.classList.toggle('light-theme');
+    
+    if (body.classList.contains('light-theme')) {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        localStorage.setItem('theme', 'light');
+    } else {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+        localStorage.setItem('theme', 'dark');
+    }
 }
