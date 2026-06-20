@@ -38,6 +38,7 @@ const DOM = {
     btnTimelineView: document.getElementById('btn-timeline-view'),
     btnCardView: document.getElementById('btn-card-view'),
     refreshBtn: document.getElementById('refresh-btn'),
+    exportBtn: document.getElementById('export-btn'),
     retryBtn: document.getElementById('retry-btn'),
     clearFiltersBtn: document.getElementById('clear-filters-btn'),
     
@@ -120,10 +121,20 @@ function setupEventListeners() {
     DOM.refreshBtn.addEventListener('click', () => {
         fetchReleases(true);
     });
+    DOM.exportBtn.addEventListener('click', exportToCSV);
     DOM.retryBtn.addEventListener('click', () => {
         fetchReleases();
     });
     DOM.clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+    // Card copy listener (event delegation)
+    DOM.releasesContainer.addEventListener('click', (e) => {
+        const copyBtn = e.target.closest('.copy-card-btn');
+        if (copyBtn) {
+            const index = parseInt(copyBtn.getAttribute('data-index'));
+            copyCardToClipboard(index);
+        }
+    });
 
     // Scroll handlers
     window.addEventListener('scroll', handleWindowScroll);
@@ -385,14 +396,23 @@ function renderReleases() {
                 <div class="timeline-group-inner">
                     <header class="timeline-header">
                         <h3 class="timeline-date">${escapeHtml(entry.date)}</h3>
-                        <a href="${entry.link}" target="_blank" rel="noopener noreferrer" class="timeline-link" title="Open official GCP Release Note link">
-                            <span>Link</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                <polyline points="15 3 21 3 21 9"></polyline>
-                                <line x1="10" y1="14" x2="21" y2="3"></line>
-                            </svg>
-                        </a>
+                        <div class="timeline-actions">
+                            <button class="copy-card-btn" data-index="${index}" title="Copy card to clipboard">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                            <a href="${entry.link}" target="_blank" rel="noopener noreferrer" class="timeline-link" title="Open official GCP Release Note link">
+                                <span>Link</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                        </div>
                     </header>
                     <div class="timeline-items-container">
                         ${itemsHtml}
@@ -421,4 +441,89 @@ function escapeHtml(unsafe) {
          .replace(/>/g, "&gt;")
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
+}
+
+// Utility function to copy release card content to clipboard
+async function copyCardToClipboard(index) {
+    const entry = state.filteredEntries[index];
+    if (!entry) return;
+    
+    let text = `BigQuery Release - ${entry.date}\n`;
+    text += `Link: ${entry.link}\n\n`;
+    
+    entry.items.forEach(item => {
+        const temp = document.createElement('div');
+        temp.innerHTML = item.html;
+        const plainText = (temp.textContent || temp.innerText || "").trim();
+        text += `[${item.type}]\n${plainText}\n\n`;
+    });
+    
+    try {
+        await navigator.clipboard.writeText(text.trim());
+        showCopyFeedback(index);
+    } catch (err) {
+        console.error("Failed to copy text: ", err);
+    }
+}
+
+// Show micro-interaction feedback on copy
+function showCopyFeedback(index) {
+    const btn = document.querySelector(`.copy-card-btn[data-index="${index}"]`);
+    if (!btn) return;
+    
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Copied!</span>
+    `;
+    btn.classList.add('copied');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('copied');
+    }, 1500);
+}
+
+// Export active filtered releases to CSV
+function exportToCSV() {
+    if (state.filteredEntries.length === 0) {
+        alert("No release notes to export.");
+        return;
+    }
+    
+    const csvRows = [];
+    csvRows.push(["Date", "Link", "Category", "Content"]);
+    
+    state.filteredEntries.forEach(entry => {
+        const date = entry.date;
+        const link = entry.link;
+        
+        entry.items.forEach(item => {
+            const category = item.type;
+            const temp = document.createElement('div');
+            temp.innerHTML = item.html;
+            const plainText = (temp.textContent || temp.innerText || "").trim();
+            csvRows.push([date, link, category, plainText]);
+        });
+    });
+    
+    const csvString = csvRows.map(row => 
+        row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const downloadLink = document.createElement("a");
+    downloadLink.setAttribute("href", url);
+    
+    const dateStr = new Date().toISOString().slice(0, 10);
+    downloadLink.setAttribute("download", `bigquery_releases_${dateStr}.csv`);
+    document.body.appendChild(downloadLink);
+    
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(url);
 }
