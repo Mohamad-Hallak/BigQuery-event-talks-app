@@ -1,59 +1,93 @@
-# BigQuery Release Notes Portal
+# 🚀 BigQuery Release Notes Portal
 
-A modern, highly responsive web application built with **Python Flask** and **plain vanilla HTML, CSS, and JavaScript** that fetches, parses, and visualizes the official Google BigQuery RSS release notes feed.
+A modern, highly responsive web application dashboard that fetches, parses, structures, and visualizes the official Google Cloud BigQuery RSS/Atom release notes feed. Built using **Python Flask** for the backend parser/server, and **vanilla HTML, CSS, and JavaScript** for the client-side experience.
 
-## 🚀 Features
+---
 
-- **Automated Atom parsing**: Parses the Atom XML feed into structured JSON groupings.
-- **Categorization & Splitting**: Splitting release items into clear categories like **Features**, **Issues**, **Announcements**, and **Deprecations** (rather than lump-sum formatting).
-- **Client-Side Analytics Summary**: Sidebar displays instant counts of features, issues, and announcements.
-- **High-Performance caching**: Memory cache with a 5-minute TTL reduces loading times and Google Cloud server fetch rates, falling back gracefully to cache if the network fails.
-- **Advanced UI Filtering**:
-  - **Live search**: Instantly filters releases by titles, details, categories, and dates.
-  - **Category tags**: Toggle display for specific note types with count badges on each filter button.
-  - **Timeframe presets**: Quickly filter releases from the Last 30 Days, Last 90 Days, or All Time.
-- **Interactive Layout Toggles**:
-  - **Timeline view**: A gorgeous vertical gradient dotted line representing release chronology.
-  - **Grid Cards**: A clean dashboard grid layout for side-by-side comparison of recent notes.
-- **Premium Aesthetics**: Designed with glassmorphism panels, CSS blur gradient background blobs, custom animations, custom scrollbars, and full responsiveness.
-- **External target link formatting**: Ensures all inline links open in a new tab safely with `rel="noopener noreferrer"`.
+## ✨ Features
 
-## 📁 Directory Structure
+### 📡 Server-Side Parsing & Caching
+- **Automated Atom parsing**: Downloads and parses the live Atom XML feed into structured JSON groupings sorted by release dates.
+- **Micro-Categorization**: Employs `BeautifulSoup4` to dissect inline HTML blocks, splitting complex updates into separate categories: **Features**, **Announcements**, **Issues**, and **Deprecations**.
+- **Smart In-Memory Caching**: Implements a 5-minute (300 seconds) cache TTL to reduce external network calls and enhance loading performance.
+- **Graceful Error Recovery**: Automatically falls back to serving cached releases if the official Google feed is temporarily unreachable.
+- **URL Sanitization**: Automatically converts relative URLs in release notes to absolute paths pointing to Google Cloud documentation and enforces `target="_blank"` for safe, external browsing.
+
+### 🎨 Client-Side Dashboard
+- **Instant Live Search**: Search titles, specific release details, categories, or release dates in real-time.
+- **Interactive Filtering Badges**: Toggle updates by specific categories with live count badges displaying the current total of items.
+- **Timeframe presets**: Select and limit releases to the Last 30 Days, Last 90 Days, or view All Time releases.
+- **Dual Presentation Layouts**:
+  - **Timeline View**: Chronological vertical flow with customized gradient connectors.
+  - **Grid Cards View**: Dashboard-style cards arranged side-by-side.
+- **Premium Styling & Micro-animations**: Glassmorphism cards, blurred background glow blobs, responsive page designs, and smooth list entrance animations.
+
+---
+
+## 📂 Directory Structure
 
 ```text
 bq-releases-notes/
 ├── .venv/                 # Python Virtual Environment
 ├── static/
-│   ├── app.js             # Client application logic (state, filter, search, render)
-│   └── style.css          # Design tokens, layouts (timeline, cards), and animation styles
+│   ├── app.js             # Client application logic (state, filter, search, rendering)
+│   └── style.css          # Design system tokens, timeline/card layouts, and CSS animations
 ├── templates/
-│   └── index.html         # Main dashboard layout structure
-├── app.py                 # Flask server, cache system, and XML BS4 parser
-├── requirements.txt       # Python dependencies (Flask, requests, beautifulsoup4)
+│   └── index.html         # Dashboard template structure
+├── app.py                 # Flask web server, XML/HTML parsing, and cache system
+├── requirements.txt       # Dependencies (Flask, beautifulsoup4)
 └── README.md              # Project documentation
 ```
 
-## 🛠️ Setup & Running Instructions
+---
 
-1. **Prerequisites**: Ensure you have Python 3.10+ installed.
-2. **Terminal setup**:
-   - Navigate to the project folder:
-     ```powershell
-     cd "D:\Kaggle\Intensive Vibe Coding\Day_2\agy-cli-projects\bq-releases-notes"
-     ```
-   - If not already done, activate the virtual environment:
-     ```powershell
-     # Windows PowerShell
-     .venv\Scripts\Activate.ps1
-     ```
-3. **Run the Server**:
-   - Launch Flask:
-     ```powershell
-     python app.py
-     ```
-4. **Access the Portal**:
-   - Open your browser and navigate to: [http://127.0.0.1:5000](http://127.0.0.1:5000)
+## 🛠️ Setup & Execution
+
+Follow these steps to run the application locally:
+
+### 1. Prerequisites
+- Python 3.10 or higher.
+- Git client (optional).
+
+### 2. Installation and Virtual Environment Setup
+Open your terminal (PowerShell on Windows recommended) and navigate to the project directory:
+
+```powershell
+# Navigate to project directory
+cd "D:\Kaggle\Intensive Vibe Coding\Day_2\agy-cli-projects\bq-releases-notes"
+
+# Create a virtual environment (if not already present)
+python -m venv .venv
+
+# Activate the virtual environment
+.venv\Scripts\Activate.ps1
+
+# Install requirements
+pip install -r requirements.txt
+```
+
+### 3. Run the Development Server
+Run the Flask application:
+
+```powershell
+python app.py
+```
+
+The server runs locally by default at:
+👉 **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
+
+---
 
 ## ⚡ Keyboard Shortcuts
-- Press `/` to focus the search box instantly.
-- Press `ESC` to blur the search box.
+
+To make navigation faster:
+* Press `/` to focus the search box.
+* Press `ESC` to clear your selection or search field.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend**: Python 3.10+, Flask 3.0.3, BeautifulSoup 4.12.3
+- **Frontend**: Plain HTML5, CSS3 Custom Properties (Variables), Vanilla JavaScript (ES6)
+- **Data Source**: [Google Cloud BigQuery Release Notes RSS Feed](https://docs.cloud.google.com/feeds/bigquery-release-notes.xml)
